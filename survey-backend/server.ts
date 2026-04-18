@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const sqlite3 = require('sqlite3');
 const path = require('path');
+const fs = require('fs');
 
 const app = express();
 const port = Number(process.env.PORT) || 3000;
@@ -9,7 +10,28 @@ const port = Number(process.env.PORT) || 3000;
 app.use(cors());
 app.use(express.json());
 
+const frontendDistDir = path.join(__dirname, 'public', 'frontend');
+const adminDistDir = path.join(__dirname, 'public', 'admin');
+const frontendIndexHtml = path.join(frontendDistDir, 'index.html');
+const adminIndexHtml = path.join(adminDistDir, 'index.html');
+
+const hasFrontend = fs.existsSync(frontendIndexHtml);
+const hasAdmin = fs.existsSync(adminIndexHtml);
+
+if (hasAdmin) {
+  app.use('/admin', express.static(adminDistDir));
+  app.get('/admin', (req, res) => res.redirect('/admin/'));
+  app.get('/admin/*', (req, res) => res.sendFile(adminIndexHtml));
+}
+
+if (hasFrontend) {
+  app.use(express.static(frontendDistDir));
+}
+
 app.get('/', (req, res) => {
+  if (hasFrontend) {
+    return res.sendFile(frontendIndexHtml);
+  }
   res.type('text/plain').send(
     [
       'AI提效问卷后端 API 已运行',
@@ -260,6 +282,13 @@ app.get('/api/users', (req, res) => {
       };
     }));
   });
+});
+
+app.get(/^(?!\/api\/|\/health$).*/, (req, res) => {
+  if (hasFrontend) {
+    return res.sendFile(frontendIndexHtml);
+  }
+  res.status(404).type('text/plain').send('Not Found');
 });
 
 app.listen(port, () => {

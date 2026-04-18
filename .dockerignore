@@ -1,0 +1,12 @@
+**/node_modules
+**/dist
+**/.vite
+**/*.log
+**/.env
+**/.env.*
+**/*.db
+.DS_Store
+.git
+.gitignore
+README.md
+
