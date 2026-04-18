@@ -9,6 +9,23 @@ const port = Number(process.env.PORT) || 3000;
 app.use(cors());
 app.use(express.json());
 
+app.get('/', (req, res) => {
+  res.type('text/plain').send(
+    [
+      'AI提效问卷后端 API 已运行',
+      '',
+      '可用接口：',
+      '- GET  /api/users',
+      '- POST /api/submit',
+      '- GET  /health'
+    ].join('\n')
+  );
+});
+
+app.get('/health', (req, res) => {
+  res.json({ ok: true });
+});
+
 // Initialize SQLite Database
 const dbPath = path.join(__dirname, 'survey.db');
 const db = new sqlite3.Database(dbPath, (err) => {
