@@ -330,16 +330,43 @@ export default function App() {
               { name: '交付服务', label: result.delivery_label, desc: result.delivery_desc, score: result.delivery_avg }
             ].map(m => {
               const isLowest = m.name === result.priority_module_label;
-              const colorClass = m.score >= 4.3 ? 'emerald' : m.score >= 3.5 ? 'blue' : m.score >= 2.7 ? 'amber' : 'rose';
+              const colorKey = m.score >= 4.3 ? 'emerald' : m.score >= 3.5 ? 'blue' : m.score >= 2.7 ? 'amber' : 'rose';
+              const colorStyles = {
+                emerald: {
+                  score: 'text-emerald-400',
+                  tag: 'bg-emerald-500/20 text-emerald-400',
+                  lowest: 'border-emerald-500 shadow-[0_0_20px_rgba(16,185,129,0.1)]',
+                  banner: 'bg-emerald-500 text-slate-950'
+                },
+                blue: {
+                  score: 'text-blue-400',
+                  tag: 'bg-blue-500/20 text-blue-400',
+                  lowest: 'border-blue-500 shadow-[0_0_20px_rgba(59,130,246,0.1)]',
+                  banner: 'bg-blue-500 text-slate-950'
+                },
+                amber: {
+                  score: 'text-amber-400',
+                  tag: 'bg-amber-500/20 text-amber-400',
+                  lowest: 'border-amber-500 shadow-[0_0_20px_rgba(245,158,11,0.1)]',
+                  banner: 'bg-amber-500 text-slate-950'
+                },
+                rose: {
+                  score: 'text-rose-400',
+                  tag: 'bg-rose-500/20 text-rose-400',
+                  lowest: 'border-rose-500 shadow-[0_0_20px_rgba(244,63,94,0.1)]',
+                  banner: 'bg-rose-500 text-slate-950'
+                }
+              } as const;
+              const style = colorStyles[colorKey];
               
               return (
-                <div key={m.name} className={`p-5 rounded-2xl border-2 transition-all relative overflow-hidden bg-slate-800/50 ${isLowest ? `border-${colorClass}-500 shadow-[0_0_20px_rgba(var(--color-${colorClass}-500),0.1)]` : 'border-slate-800'}`}>
-                  {isLowest && <div className={`absolute top-0 right-0 px-2 py-1 bg-${colorClass}-500 text-slate-950 text-[10px] font-black rounded-bl-lg`}>优先优化</div>}
+                <div key={m.name} className={`p-5 rounded-2xl border-2 transition-all relative overflow-hidden bg-slate-800/50 ${isLowest ? style.lowest : 'border-slate-800'}`}>
+                  {isLowest && <div className={`absolute top-0 right-0 px-2 py-1 text-[10px] font-black rounded-bl-lg ${style.banner}`}>优先优化</div>}
                   <div className="flex justify-between items-start mb-3">
                     <div className="text-slate-300 font-bold">{m.name}</div>
-                    <div className={`text-2xl font-black text-${colorClass}-400`}>{m.score.toFixed(1)}</div>
+                    <div className={`text-2xl font-black ${style.score}`}>{m.score.toFixed(1)}</div>
                   </div>
-                  <div className={`inline-block px-2 py-1 rounded text-xs font-bold mb-3 bg-${colorClass}-500/20 text-${colorClass}-400`}>
+                  <div className={`inline-block px-2 py-1 rounded text-xs font-bold mb-3 ${style.tag}`}>
                     {m.label}
                   </div>
                   <p className="text-slate-400 text-sm leading-relaxed">{m.desc}</p>
