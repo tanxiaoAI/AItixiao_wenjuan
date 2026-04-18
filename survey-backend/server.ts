@@ -20,8 +20,7 @@ const hasAdmin = fs.existsSync(adminIndexHtml);
 
 if (hasAdmin) {
   app.use('/admin', express.static(adminDistDir));
-  app.get('/admin', (req, res) => res.redirect('/admin/'));
-  app.get('/admin/*', (req, res) => res.sendFile(adminIndexHtml));
+  app.get(/^\/admin(\/.*)?$/, (req, res) => res.sendFile(adminIndexHtml));
 }
 
 if (hasFrontend) {
