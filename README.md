@@ -24,7 +24,7 @@ survey-system/
 ```bash
 cd ai-efficiency-map/survey-system/survey-backend
 npm i
-node server.ts
+npm start
 ```
 
 数据库文件：`survey-backend/survey.db`（本地使用，不建议提交到 GitHub）
@@ -51,6 +51,29 @@ npm run dev
 
 ## 常见问题
 
+## 部署到 Zeabur（推荐：三个服务）
+
+你需要创建 3 个 Service（都可以从同一个 GitHub 仓库创建），分别指向不同子目录：
+
+- 后端：`ai-efficiency-map/survey-system/survey-backend`
+  - Build：`npm i`
+  - Start：`npm start`
+  - 环境变量：Zeabur 会提供 `PORT`，后端已支持 `process.env.PORT`
+
+- 问卷前台：`ai-efficiency-map/survey-system/survey-frontend`
+  - Build：`npm i && npm run build`
+  - Start：`npm start`（使用 `vite preview` 对外提供页面）
+  - 环境变量：`VITE_API_BASE_URL=https://<你的后端域名>`
+
+- 管理后台：`ai-efficiency-map/survey-system/survey-admin`
+  - Build：`npm i && npm run build`
+  - Start：`npm start`
+  - 环境变量：`VITE_API_BASE_URL=https://<你的后端域名>`
+
+部署完成后：
+- 打开“问卷网页”：访问问卷前台 Service 的公网域名
+- 打开“管理后台网页”：访问管理后台 Service 的公网域名
+
 ### 为什么“数据看起来没了”？
 
 请先确认后端 `http://localhost:3000` 是否在运行。管理后台与前台提交都依赖后端。
@@ -58,4 +81,3 @@ npm run dev
 ### SQLite 数据库路径
 
 后端使用固定路径 `survey-backend/survey.db`（基于 `__dirname`），避免因启动目录不同导致读到空库。
-

@@ -244,6 +244,9 @@ const questions = [
 ];
 
 export default function App() {
+  const apiBaseUrl = (import.meta as any).env?.VITE_API_BASE_URL || '';
+  const apiUrl = (p: string) => `${apiBaseUrl}`.replace(/\/+$/, '') + p;
+
   const [started, setStarted] = useState(false);
   const [userInfo, setUserInfo] = useState({ nickname: '', phone: '' });
   const [answers, setAnswers] = useState<number[]>(Array(20).fill(0));
@@ -284,13 +287,13 @@ export default function App() {
     }
     setLoading(true);
     try {
-      const res = await fetch('http://localhost:3000/api/submit', {
+      const res = await fetch(apiUrl('/api/submit'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
+        body: JSON.stringify({
           nickname: userInfo.nickname,
           phone: userInfo.phone,
-          answers 
+          answers
         })
       });
       const data = await res.json();

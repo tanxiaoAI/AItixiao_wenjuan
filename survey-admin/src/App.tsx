@@ -244,13 +244,16 @@ const questions = [
 ];
 
 export default function App() {
+  const apiBaseUrl = (import.meta as any).env?.VITE_API_BASE_URL || '';
+  const apiUrl = (p: string) => `${apiBaseUrl}`.replace(/\/+$/, '') + p;
+
   const [responses, setResponses] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedUser, setSelectedUser] = useState<any | null>(null);
   const [selectedAdvice, setSelectedAdvice] = useState<{title: string, desc: string[] | string} | null>(null);
 
   useEffect(() => {
-    fetch('http://localhost:3000/api/users')
+    fetch(apiUrl('/api/users'))
       .then(res => res.json())
       .then(data => {
         setResponses(data);
