@@ -56,12 +56,20 @@ app.get('/health', (req, res) => {
 });
 
 // Initialize SQLite Database
-const dbPath = path.join(__dirname, 'survey.db');
+const configuredDbPath = process.env.SQLITE_DB_PATH;
+const defaultDbDir = fs.existsSync('/data') ? '/data' : __dirname;
+const dbPath = configuredDbPath
+  ? path.resolve(configuredDbPath)
+  : path.join(defaultDbDir, 'survey.db');
+
+fs.mkdirSync(path.dirname(dbPath), { recursive: true });
+
 const db = new sqlite3.Database(dbPath, (err) => {
   if (err) {
     console.error('Error opening database', err.message);
   } else {
     console.log('Connected to the SQLite database.');
+    console.log(`Using SQLite database at: ${dbPath}`);
     
     // Create Users Table
     db.run(`CREATE TABLE IF NOT EXISTS users (

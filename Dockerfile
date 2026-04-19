@@ -26,7 +26,10 @@ RUN apt-get update \
   && apt-get install -y --no-install-recommends python3 make g++ \
   && rm -rf /var/lib/apt/lists/*
 
+RUN mkdir -p /data
+
 ENV npm_config_build_from_source=sqlite3
+ENV SQLITE_DB_PATH=/data/survey.db
 
 COPY survey-backend/package.json survey-backend/package-lock.json ./
 RUN npm ci --omit=dev
@@ -42,4 +45,3 @@ ENV PORT=8080
 EXPOSE 8080
 
 CMD ["node", "server.ts"]
-
