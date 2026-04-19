@@ -12,6 +12,11 @@ RUN cd survey-admin && npm ci
 COPY survey-admin/ ./survey-admin/
 RUN cd survey-admin && npm run build
 
+COPY survey-business/package.json survey-business/package-lock.json ./survey-business/
+RUN cd survey-business && npm ci
+COPY survey-business/ ./survey-business/
+RUN cd survey-business && npm run build
+
 
 FROM node:20-bookworm-slim
 
@@ -30,6 +35,7 @@ COPY survey-backend/server.ts ./
 
 COPY --from=build /build/survey-frontend/dist ./public/frontend
 COPY --from=build /build/survey-admin/dist ./public/admin
+COPY --from=build /build/survey-business/dist ./public/business
 
 ENV NODE_ENV=production
 ENV PORT=8080

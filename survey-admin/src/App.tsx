@@ -291,6 +291,7 @@ export default function App() {
                   <th className="p-4 font-semibold text-slate-600 text-sm">ID</th>
                   <th className="p-4 font-semibold text-slate-600 text-sm">用户昵称</th>
                   <th className="p-4 font-semibold text-slate-600 text-sm">手机号</th>
+                  <th className="p-4 font-semibold text-slate-600 text-sm">问卷类型</th>
                   <th className="p-4 font-semibold text-slate-600 text-sm">提交时间</th>
                   <th className="p-4 font-semibold text-slate-600 text-sm">整体建议</th>
                   <th className="p-4 font-semibold text-slate-600 text-sm">业务流程评估</th>
@@ -304,6 +305,11 @@ export default function App() {
                     <td className="p-4 text-slate-500 font-mono">#{r.user_id}</td>
                     <td className="p-4 text-slate-900 font-medium">{r.nickname}</td>
                     <td className="p-4 text-slate-600">{r.phone}</td>
+                    <td className="p-4 text-slate-600">
+                      <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${r.type === 'management' ? 'bg-purple-100 text-purple-800' : 'bg-emerald-100 text-emerald-800'}`}>
+                        {r.type === 'management' ? '老板管理版' : '老板执行版'}
+                      </span>
+                    </td>
                     <td className="p-4 text-slate-600">{new Date(r.user_created_at).toLocaleString('zh-CN')}</td>
                     <td className="p-4">
                       {r.result_data ? (

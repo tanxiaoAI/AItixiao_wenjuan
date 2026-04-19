@@ -288,14 +288,15 @@ export default function App() {
     setLoading(true);
     try {
       const res = await fetch(apiUrl('/api/submit'), {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          nickname: userInfo.nickname,
-          phone: userInfo.phone,
-          answers
-        })
-      });
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            nickname: userInfo.nickname,
+            phone: userInfo.phone,
+            type: 'execution',
+            answers: answers
+          })
+        });
       const data = await res.json();
       setResult(data.result);
     } catch (error) {
@@ -312,9 +313,10 @@ export default function App() {
     return (
       <div className="max-w-4xl mx-auto p-8 bg-slate-900 rounded-3xl shadow-2xl border border-slate-800 animate-fade-in">
         <div className="text-center mb-12">
-          <h2 className="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-400 mb-4">
+          <h2 className="text-4xl md:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-400 tracking-tight">
             你的AI提效现状诊断结果
           </h2>
+          <p className="text-emerald-400 font-bold mt-4 text-lg">老板执行版</p>
         </div>
 
         {/* 模块1：业务流程 */}
@@ -489,9 +491,11 @@ export default function App() {
             <h1 className="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-400 mb-4">
               AI提效现状自测
             </h1>
+            <p className="text-emerald-400 font-bold mb-4 text-sm">老板执行版</p>
             <p className="text-slate-400 text-sm">
               填写基本信息开启你的 20 题专业诊断
             </p>
+
           </div>
           
           <form onSubmit={handleStart} className="space-y-6">
