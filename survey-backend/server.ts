@@ -126,10 +126,10 @@ const db = new sqlite3.Database(dbPath, (err) => {
 // Helper functions for scoring logic
 function getBusinessStageLabel(score, type = 'execution') {
   if (type === 'management') {
-    if (score >= 4.3) return { label: '成熟稳定', desc: '你的公司在这个模块上已经比较成熟，不只是有人会做，而是团队整体能较稳定完成，老板也相对看得见、管得住。接下来重点不是从0到1补流程，而是继续提升效率、标准化程度和人才复制能力。' };
-    if (score >= 3.5) return { label: '基础具备', desc: '你的公司在这个模块已经有基础能力，但还不算特别稳。很多事情能做出来，但执行质量、协同效率或复盘机制还有提升空间。这一阶段最适合做的是补齐关键短板，把“能做”变成“稳定做好”。' };
-    if (score >= 2.5) return { label: '依赖个人', desc: '你的公司在这个模块已有一定基础，但整体还偏依赖个人经验，团队执行和流程闭环不够稳定。老板可能已经感觉到：有些环节不是没人做，而是做得不顺、质量不稳、难复制。' };
-    return { label: '明显偏弱', desc: '你的公司在这个模块明显偏弱，说明这部分还没有真正建立成团队能力。当前问题往往不是某个人不努力，而是流程、标准、分工、管理可见性都不足，导致老板很难放心放权。' };
+    if (score >= 4.3) return { label: '系统成熟', desc: '这一模块已经比较稳定，继续加油' };
+    if (score >= 3.5) return { label: '基本成型', desc: '这一模块已有较清晰流程，但仍有局部可优化空间' };
+    if (score >= 2.7) return { label: '明显卡点', desc: '这一模块已经开始拖慢效率，建议尽快梳理关键问题' };
+    return { label: '主要瓶颈', desc: '这一模块成熟度偏低，已经明显影响业务效率和结果，建议优先优化' };
   } else {
     if (score >= 4.3) return { label: '系统成熟', desc: '这一模块已经比较稳定，继续加油' };
     if (score >= 3.5) return { label: '基本成型', desc: '这一模块已有较清晰流程，但仍有局部可优化空间' };
@@ -185,32 +185,32 @@ function computeResultDataFromAnswers(answers, type = 'execution') {
 
   if (type === 'management') {
     if (business_avg < 3.5 && ai_avg < 3.5) {
-      quadrant_label = '基础补课型';
-      quadrant_title = '基础补课型';
+      quadrant_label = '流程弱，AI弱';
+      quadrant_title = '流程弱，AI弱';
       quadrant_desc = [
         '你的公司当前更大的问题不是“AI没用起来”，而是很多基础业务流程本身就还不够稳定。对于这种情况，最有效的方式不是先追求复杂AI方案，而是先补齐内容、转化或交付里的核心短板，再把AI接入关键环节。',
-        '建议：优先处理最低业务模块，再选择1-2个高频场景做AI辅助。'
+        '建议优先处理最低业务模块，再选择1-2个高频场景做AI辅助。'
       ];
     } else if (business_avg >= 3.5 && ai_avg < 3.5) {
-      quadrant_label = '流程先行型';
-      quadrant_title = '流程先行型';
+      quadrant_label = '流程强，AI弱';
+      quadrant_title = '流程强，AI弱';
       quadrant_desc = [
         '你的公司业务基础其实已经具备，团队也不是完全没有能力，真正的机会点在于通过AI把现有流程做得更快、更省、更标准。你现在缺的不是从0搭系统，而是给已有系统做效率升级。',
-        '建议：先选最耗时、最重复、最容易标准化的环节做AI落地。'
+        '建议先选最耗时、最重复、最容易标准化的环节做AI落地。'
       ];
     } else if (business_avg < 3.5 && ai_avg >= 3.5) {
-      quadrant_label = '工具堆叠型';
-      quadrant_title = '工具堆叠型';
+      quadrant_label = '流程弱，AI强';
+      quadrant_title = '流程弱，AI强';
       quadrant_desc = [
         '你的公司并不是不会用AI，甚至可能已经用了不少工具，但问题在于业务基础不够稳，导致AI只能局部提效，难以真正放大结果。这类情况常见表现就是：工具很多、动作很多，但整体经营体感没有明显变轻。',
-        '建议：先收缩工具和动作，把AI重新接回到最核心的业务流程里。'
+        '建议先收缩工具和动作，把AI重新接回到最核心的业务流程里。'
       ];
     } else if (business_avg >= 3.5 && ai_avg >= 3.5) {
-      quadrant_label = '系统升级型';
-      quadrant_title = '系统升级型';
+      quadrant_label = '流程强，AI强';
+      quadrant_title = '流程强，AI强';
       quadrant_desc = [
         '你的公司已经具备比较好的组织基础，也开始把AI真正用于业务。当前更适合做的，不是零碎优化，而是系统升级，比如统一标准、打通流程、增强自动化、降低对个别员工的依赖。',
-        '建议：从“局部提效”转向“组织级提效”，重点提升复制能力和管理透明度。'
+        '建议从“局部提效”转向“组织级提效”，重点提升复制能力和管理透明度。'
       ];
     }
   } else {

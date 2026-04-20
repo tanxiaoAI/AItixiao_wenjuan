@@ -305,7 +305,7 @@ export default function App() {
 
   const getScoreColorClass = (score: number) => {
     if (score >= 4.3) return 'emerald';
-    if (score >= 3.5) return 'emerald';
+    if (score >= 3.5) return 'blue';
     if (score >= 2.7) return 'amber';
     return 'rose';
   };
@@ -314,164 +314,154 @@ export default function App() {
     if (!result) return null;
 
     return (
-      <div className="max-w-4xl mx-auto space-y-12 pb-12 animate-fade-in">
-        {/* Header */}
-        <div className="text-center pt-8">
+      <div className="max-w-4xl mx-auto p-8 bg-slate-900 rounded-3xl shadow-2xl border border-slate-800 animate-fade-in">
+        <div className="text-center mb-12">
           <h2 className="text-4xl md:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-400 tracking-tight">
             你的AI提效现状诊断结果
           </h2>
           <p className="text-emerald-400 font-bold mt-4 text-lg">老板管理版</p>
         </div>
 
-        {/* Section 1: Business Flow */}
-        <div className="space-y-6">
-          <div className="flex items-center gap-4">
-            <div className="w-10 h-10 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-400 font-bold text-xl border border-emerald-500/30">1</div>
-            <h3 className="text-2xl font-bold text-white">业务流程评估</h3>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="mb-12">
+          <h3 className="text-2xl font-bold text-slate-100 mb-6 flex items-center gap-3">
+            <span className="flex items-center justify-center w-8 h-8 rounded-full bg-rose-500/20 text-rose-400">1</span>
+            业务流程评估
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
             {[
-              { label: '内容获客', avg: result.content_avg, stage: result.content_label, desc: result.content_desc },
-              { label: '线索转化', avg: result.conversion_avg, stage: result.conversion_label, desc: result.conversion_desc },
-              { label: '交付服务', avg: result.delivery_avg, stage: result.delivery_label, desc: result.delivery_desc }
-            ].map((m, idx) => {
-              const c = getScoreColorClass(m.avg);
-              
-              let borderClass = 'border-slate-800';
-              let ringClass = '';
-              let valueColorClass = 'text-white';
-              let stageBgClass = 'bg-slate-800';
-              let stageTextClass = 'text-slate-400';
-              
-              if (m.label === result.priority_module_label) {
-                borderClass = 'border-rose-500/50';
-                ringClass = 'ring-1 ring-rose-500/50 shadow-[0_0_20px_rgba(244,63,94,0.15)]';
-              }
-              
-              if (c === 'emerald') {
-                valueColorClass = 'text-emerald-400';
-                stageBgClass = 'bg-emerald-500/10';
-                stageTextClass = 'text-emerald-400';
-              } else if (c === 'amber') {
-                valueColorClass = 'text-amber-400';
-                stageBgClass = 'bg-amber-500/10';
-                stageTextClass = 'text-amber-400';
-              } else if (c === 'rose') {
-                valueColorClass = 'text-rose-400';
-                stageBgClass = 'bg-rose-500/10';
-                stageTextClass = 'text-rose-400';
-              }
+              { name: '内容获客', label: result.content_label, desc: result.content_desc, score: result.content_avg },
+              { name: '线索转化', label: result.conversion_label, desc: result.conversion_desc, score: result.conversion_avg },
+              { name: '交付服务', label: result.delivery_label, desc: result.delivery_desc, score: result.delivery_avg }
+            ].map(m => {
+              const isLowest = m.name === result.priority_module_label;
+              const colorKey = getScoreColorClass(m.score);
+              const colorStyles = {
+                emerald: {
+                  score: 'text-emerald-400',
+                  tag: 'bg-emerald-500/20 text-emerald-400',
+                  lowest: 'border-emerald-500 shadow-[0_0_20px_rgba(16,185,129,0.1)]',
+                  banner: 'bg-emerald-500 text-slate-950'
+                },
+                blue: {
+                  score: 'text-blue-400',
+                  tag: 'bg-blue-500/20 text-blue-400',
+                  lowest: 'border-blue-500 shadow-[0_0_20px_rgba(59,130,246,0.1)]',
+                  banner: 'bg-blue-500 text-slate-950'
+                },
+                amber: {
+                  score: 'text-amber-400',
+                  tag: 'bg-amber-500/20 text-amber-400',
+                  lowest: 'border-amber-500 shadow-[0_0_20px_rgba(245,158,11,0.1)]',
+                  banner: 'bg-amber-500 text-slate-950'
+                },
+                rose: {
+                  score: 'text-rose-400',
+                  tag: 'bg-rose-500/20 text-rose-400',
+                  lowest: 'border-rose-500 shadow-[0_0_20px_rgba(244,63,94,0.1)]',
+                  banner: 'bg-rose-500 text-slate-950'
+                }
+              } as const;
+              const style = colorStyles[colorKey as keyof typeof colorStyles];
 
               return (
-                <div key={idx} className={`relative p-6 rounded-2xl bg-slate-900 border-2 transition-all ${borderClass} ${ringClass}`}>
-                  {m.label === result.priority_module_label && (
-                    <div className="absolute -top-3 right-4 bg-rose-500 text-white text-[10px] font-black px-2 py-1 rounded-md tracking-wider">
-                      优先优化
-                    </div>
-                  )}
-                  <div className="flex justify-between items-end mb-4">
-                    <div className="text-slate-300 font-bold text-lg">{m.label}</div>
-                    <div className={`text-4xl font-black ${valueColorClass}`}>
-                      {m.avg.toFixed(1)}
-                    </div>
+                <div key={m.name} className={`p-5 rounded-2xl border-2 transition-all relative overflow-hidden bg-slate-800/50 ${isLowest ? style.lowest : 'border-slate-800'}`}>
+                  {isLowest && <div className={`absolute top-0 right-0 px-2 py-1 text-[10px] font-black rounded-bl-lg ${style.banner}`}>优先优化</div>}
+                  <div className="flex justify-between items-start mb-3">
+                    <div className="text-slate-300 font-bold">{m.name}</div>
+                    <div className={`text-2xl font-black ${style.score}`}>{m.score.toFixed(1)}</div>
                   </div>
-                  <div className={`inline-block px-3 py-1 rounded-md text-xs font-bold mb-4 ${stageBgClass} ${stageTextClass}`}>
-                    {m.stage}
+                  <div className={`inline-block px-2 py-1 rounded text-xs font-bold mb-3 ${style.tag}`}>
+                    {m.label}
                   </div>
-                  <p className="text-slate-400 text-sm leading-relaxed">
-                    {m.desc}
-                  </p>
+                  <p className="text-slate-400 text-sm leading-relaxed">{m.desc}</p>
                 </div>
               );
             })}
           </div>
-
-          {/* 低分题展示 */}
-          {result.priority_questions && result.priority_questions.length > 0 && (
-            <div className="mt-6 p-6 bg-slate-800/50 rounded-2xl border border-slate-700">
-              <h4 className="text-lg font-bold text-rose-400 mb-2">当前最需要优先处理的细节</h4>
-              <p className="text-slate-400 text-sm mb-6">以下问题是你这次问卷里得分最低的关键项，通常也是老板最容易感受到“团队看起来很忙，但结果不稳定”的原因所在。建议优先从这1-3个点入手，而不是同时大改所有流程。</p>
-              <div className="space-y-4">
-                {result.priority_questions.map((q: any, idx: number) => {
-                  const qData = questions.find(item => item.id === q.qId);
-                  const selectedOption = qData?.options.find(opt => opt.value === q.score);
-                  return (
-                    <div key={idx} className="p-5 bg-slate-900 rounded-xl border border-slate-800 flex flex-col md:flex-row gap-6 justify-between items-start">
-                      <div className="flex-1">
-                        <div className="text-slate-300 font-medium mb-3">{qData?.text}</div>
-                        <div className="flex items-start gap-2 bg-slate-800/50 p-3 rounded-lg border border-slate-700/50">
-                          <span className="text-rose-400 font-black mt-0.5">·</span>
-                          <span className="text-slate-400 text-sm leading-relaxed">{selectedOption?.label}</span>
-                        </div>
-                      </div>
-                      <div className="shrink-0 flex flex-col items-center justify-center bg-rose-500/10 px-4 py-3 rounded-xl border border-rose-500/20 min-w-[80px]">
-                        <div className="text-rose-400 font-black text-2xl leading-none">{q.score}</div>
-                        <div className="text-rose-500/60 text-[10px] font-bold mt-1">得分</div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          )}
         </div>
 
-        {/* Section 2: AI Application */}
-        <div className="space-y-6">
-          <div className="flex items-center gap-4">
-            <div className="w-10 h-10 rounded-full bg-cyan-500/20 flex items-center justify-center text-cyan-400 font-bold text-xl border border-cyan-500/30">2</div>
-            <h3 className="text-2xl font-bold text-white">AI应用评估</h3>
-          </div>
-          
-          <div className="p-8 rounded-3xl bg-slate-900 border border-slate-800 flex flex-col md:flex-row gap-8 items-center">
-            <div className="shrink-0 text-center md:border-r border-slate-800 md:pr-8">
-              <div className="text-slate-500 text-sm font-bold mb-2">综合得分</div>
-              <div className="text-6xl font-black text-transparent bg-clip-text bg-gradient-to-br from-cyan-400 to-blue-500">
-                {result.ai_avg.toFixed(1)}
-              </div>
+        <div className="mb-12">
+          <h3 className="text-2xl font-bold text-slate-100 mb-6 flex items-center gap-3">
+            <span className="flex items-center justify-center w-8 h-8 rounded-full bg-cyan-500/20 text-cyan-400">2</span>
+            AI应用评估
+          </h3>
+          <div className="p-8 bg-gradient-to-br from-slate-800 to-slate-900 rounded-2xl border border-slate-700 flex flex-col md:flex-row items-center gap-8">
+            <div className="shrink-0 text-center md:border-r border-slate-700 md:pr-8">
+              <div className="text-slate-400 text-sm mb-2">综合得分</div>
+              <div className="text-5xl font-black text-cyan-400 mb-2">{result.ai_avg.toFixed(1)}</div>
             </div>
             <div className="flex-1">
-              <div className="inline-block px-3 py-1 rounded-md text-xs font-bold mb-4 bg-cyan-500/10 text-cyan-400">
-                {result.ai_stage_label}
-              </div>
-              <p className="text-slate-300 text-lg leading-relaxed">
-                {result.ai_stage_desc}
-              </p>
+              <p className="text-slate-300 text-lg leading-relaxed">{result.ai_stage_desc}</p>
             </div>
           </div>
         </div>
 
-        {/* Section 3: Overall Suggestion */}
-        <div className="space-y-6">
-          <div className="flex items-center gap-4">
-            <div className="w-10 h-10 rounded-full bg-purple-500/20 flex items-center justify-center text-purple-400 font-bold text-xl border border-purple-500/30">3</div>
-            <h3 className="text-2xl font-bold text-white">整体建议</h3>
-          </div>
-          
-          <div className="bg-slate-900 border border-slate-800 rounded-3xl overflow-hidden relative">
-            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-emerald-400 via-cyan-400 to-purple-500"></div>
-            
-            <div className="p-8 border-b border-slate-800">
-              <h4 className="text-xl font-bold text-white mb-6">业务流程总述</h4>
-              <p className="text-slate-300 leading-relaxed">
-                从老板视角看，你的公司当前最需要优先优化的，是<span className="text-rose-400 font-bold mx-1">【{result.priority_module_label}】</span>。这说明问题不一定出在员工不努力，而更可能出在流程、标准、分工或管理可见性不够稳定。
-              </p>
+        <div className="mb-8">
+          <h3 className="text-2xl font-bold text-slate-100 mb-6 flex items-center gap-3">
+            <span className="flex items-center justify-center w-8 h-8 rounded-full bg-emerald-500/20 text-emerald-400">3</span>
+            整体建议
+          </h3>
+
+          <div className="p-8 bg-slate-950 rounded-2xl border border-slate-800 mb-6 relative overflow-hidden">
+            <div className="relative w-full max-w-md mx-auto aspect-square mb-8">
+              <div className="absolute inset-0 grid grid-cols-2 grid-rows-2">
+                <div className={`border-r border-b border-slate-700/50 flex items-center justify-center p-4 transition-all ${result.quadrant_title === '流程弱，AI强' ? 'bg-emerald-500/10' : ''}`}>
+                  <span className={`text-sm font-bold ${result.quadrant_title === '流程弱，AI强' ? 'text-emerald-400' : 'text-slate-600'}`}>流程弱，AI强</span>
+                </div>
+                <div className={`border-b border-slate-700/50 flex items-center justify-center p-4 transition-all ${result.quadrant_title === '流程强，AI强' ? 'bg-emerald-500/10' : ''}`}>
+                  <span className={`text-sm font-bold ${result.quadrant_title === '流程强，AI强' ? 'text-emerald-400' : 'text-slate-600'}`}>流程强，AI强</span>
+                </div>
+                <div className={`border-r border-slate-700/50 flex items-center justify-center p-4 transition-all ${result.quadrant_title === '流程弱，AI弱' ? 'bg-emerald-500/10' : ''}`}>
+                  <span className={`text-sm font-bold ${result.quadrant_title === '流程弱，AI弱' ? 'text-emerald-400' : 'text-slate-600'}`}>流程弱，AI弱</span>
+                </div>
+                <div className={`flex items-center justify-center p-4 transition-all ${result.quadrant_title === '流程强，AI弱' ? 'bg-emerald-500/10' : ''}`}>
+                  <span className={`text-sm font-bold ${result.quadrant_title === '流程强，AI弱' ? 'text-emerald-400' : 'text-slate-600'}`}>流程强，AI弱</span>
+                </div>
+              </div>
+
+              <div className="absolute top-1/2 -left-8 -translate-y-1/2 -rotate-90 text-xs text-slate-500 font-bold tracking-widest">AI应用</div>
+              <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 text-xs text-slate-500 font-bold tracking-widest">业务流程</div>
+
+              {[1, 5].map(tick => {
+                const pos = tick <= 3.5 ? ((tick - 1) / 2.5) * 50 : 50 + ((tick - 3.5) / 1.5) * 50;
+                return (
+                  <div key={tick}>
+                    <div className="absolute top-1/2 -translate-y-1/2 flex flex-col items-center z-0" style={{ left: `${pos}%` }}>
+                      <div className="w-0.5 h-2 bg-slate-600" />
+                      {tick !== 3.5 && <div className="absolute top-2 text-[10px] text-slate-500 font-medium">{tick}</div>}
+                    </div>
+                    <div className="absolute left-1/2 -translate-x-1/2 flex items-center z-0" style={{ top: `${100 - pos}%` }}>
+                      <div className="w-2 h-0.5 bg-slate-600" />
+                      {tick !== 3.5 && <div className="absolute left-2 text-[10px] text-slate-500 font-medium">{tick}</div>}
+                    </div>
+                  </div>
+                );
+              })}
+
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-[10px] text-slate-400 bg-slate-950 px-1 font-bold z-0">3.5</div>
+
+              <div
+                className="absolute w-4 h-4 bg-emerald-400 rounded-full shadow-[0_0_15px_rgba(52,211,153,0.8)] -translate-x-1/2 -translate-y-1/2 z-10 transition-all duration-1000"
+                style={{
+                  left: `${result.business_avg <= 3.5 ? ((result.business_avg - 1) / 2.5) * 50 : 50 + ((result.business_avg - 3.5) / 1.5) * 50}%`,
+                  top: `${100 - (result.ai_avg <= 3.5 ? ((result.ai_avg - 1) / 2.5) * 50 : 50 + ((result.ai_avg - 3.5) / 1.5) * 50)}%`
+                }}
+              >
+                <div className="absolute -top-7 left-1/2 -translate-x-1/2 whitespace-nowrap text-xs font-bold text-emerald-300 bg-slate-900 px-2 py-0.5 rounded border border-emerald-500/30">
+                  你在这里
+                </div>
+                <div className="absolute top-5 left-1/2 -translate-x-1/2 whitespace-nowrap text-[10px] font-bold text-emerald-400 bg-slate-900/80 px-1.5 py-0.5 rounded">
+                  ({result.business_avg.toFixed(1)}, {result.ai_avg.toFixed(1)})
+                </div>
+              </div>
             </div>
 
-            <div className="p-8 border-b border-slate-800">
-              <h4 className="text-xl font-bold text-white mb-6">AI应用总述</h4>
-              <p className="text-slate-300 leading-relaxed">
-                目前你公司的AI应用状态属于<span className="text-cyan-400 font-bold mx-1">【{result.ai_stage_label}】</span>。重点不在于是否接触过AI，而在于AI是否已经真正进入业务流程，并带来可持续的效率提升。
-              </p>
-            </div>
-
-            <div className="p-8 bg-purple-500/5">
-              <h4 className="text-xl font-bold text-purple-400 mb-6">{result.quadrant_title}</h4>
-              <ul className="space-y-4">
+            <div className="bg-emerald-500/10 border border-emerald-500/20 p-6 rounded-2xl">
+              <h4 className="text-xl font-bold text-emerald-400 mb-4">{result.quadrant_title}</h4>
+              <ul className="space-y-3">
                 {result.quadrant_desc.map((desc: string, i: number) => (
                   <li key={i} className="flex items-start gap-3 text-slate-300">
-                    <span className="shrink-0 w-1.5 h-1.5 rounded-full bg-purple-500 mt-2"></span>
+                    <span className="shrink-0 w-1.5 h-1.5 rounded-full bg-emerald-500 mt-2" />
                     <span className="leading-relaxed">{desc}</span>
                   </li>
                 ))}
