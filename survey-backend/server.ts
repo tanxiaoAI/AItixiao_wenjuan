@@ -23,13 +23,25 @@ const hasBusiness = fs.existsSync(businessIndexHtml);
 
 if (hasAdmin) {
   app.use('/admin', express.static(adminDistDir));
-  app.get(/^\/admin(\/.*)?$/, (req, res) => res.sendFile(adminIndexHtml));
 }
+
+app.get(/^\/admin(\/.*)?$/, (req, res) => {
+  if (fs.existsSync(adminIndexHtml)) {
+    return res.sendFile(adminIndexHtml);
+  }
+  res.status(503).json({ ok: false, error: 'admin bundle not found' });
+});
 
 if (hasBusiness) {
   app.use('/business', express.static(businessDistDir));
-  app.get(/^\/business(\/.*)?$/, (req, res) => res.sendFile(businessIndexHtml));
 }
+
+app.get(/^\/business(\/.*)?$/, (req, res) => {
+  if (fs.existsSync(businessIndexHtml)) {
+    return res.sendFile(businessIndexHtml);
+  }
+  res.status(503).json({ ok: false, error: 'business bundle not found' });
+});
 
 if (hasFrontend) {
   app.use(express.static(frontendDistDir));
@@ -52,7 +64,13 @@ app.get('/', (req, res) => {
 });
 
 app.get('/health', (req, res) => {
-  res.json({ ok: true });
+  res.json({
+    ok: true,
+    hasFrontend: fs.existsSync(frontendIndexHtml),
+    hasAdmin: fs.existsSync(adminIndexHtml),
+    hasBusiness: fs.existsSync(businessIndexHtml),
+    dbPath
+  });
 });
 
 // Initialize SQLite Database
