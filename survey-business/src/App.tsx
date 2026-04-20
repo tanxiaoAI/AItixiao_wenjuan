@@ -261,38 +261,45 @@ export default function App() {
     }
   };
 
-  const handleSelect = async (score: number) => {
+  const handleSelect = (score: number) => {
     const newAnswers = [...answers];
     newAnswers[currentStep] = score;
     setAnswers(newAnswers);
 
     if (currentStep < 19) {
       setTimeout(() => setCurrentStep(prev => prev + 1), 300);
-    } else {
-      setSubmitting(true);
-      try {
-        const res = await fetch(apiUrl('/api/submit'), {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            nickname: userInfo.nickname,
-            phone: userInfo.phone,
-            type: 'management',
-            answers: newAnswers
-          })
-        });
-        const data = await res.json();
-        if (data.success) {
-          setResult(data.result);
-        } else {
-          alert('提交失败，请重试');
-        }
-      } catch (error) {
-        console.error('Submit error:', error);
-        alert('网络错误，请重试');
-      } finally {
-        setSubmitting(false);
+    }
+  };
+
+  const handleSubmit = async () => {
+    if (answers.includes(0)) {
+      alert('请先完成全部 20 道题');
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      const res = await fetch(apiUrl('/api/submit'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          nickname: userInfo.nickname,
+          phone: userInfo.phone,
+          type: 'management',
+          answers
+        })
+      });
+      const data = await res.json();
+      if (data.success) {
+        setResult(data.result);
+      } else {
+        alert('提交失败，请重试');
       }
+    } catch (error) {
+      console.error('Submit error:', error);
+      alert('网络错误，请重试');
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -572,6 +579,26 @@ export default function App() {
                 </div>
               </button>
             ))}
+          </div>
+
+          <div className="mt-8 flex items-center justify-between gap-4">
+            <button
+              type="button"
+              onClick={() => setCurrentStep(prev => Math.max(0, prev - 1))}
+              disabled={currentStep === 0 || submitting}
+              className="px-6 py-3 rounded-xl border border-slate-700 text-slate-300 hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+            >
+              上一题
+            </button>
+
+            <button
+              type="button"
+              onClick={handleSubmit}
+              disabled={submitting || answers.includes(0)}
+              className="px-6 py-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-[0_0_20px_rgba(16,185,129,0.2)]"
+            >
+              {submitting ? '提交中...' : '提交并查看报告'}
+            </button>
           </div>
         </div>
       </div>
