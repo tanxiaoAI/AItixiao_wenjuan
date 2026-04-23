@@ -96,7 +96,22 @@ const db = new sqlite3.Database(dbPath, (err) => {
       phone TEXT NOT NULL,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       UNIQUE(nickname, phone)
-    )`);
+    )`, (err) => {
+      if (!err) {
+        const crmCols = [
+          'company_name TEXT',
+          'user_role TEXT',
+          'main_business TEXT',
+          'team_size TEXT',
+          'priority_problem TEXT',
+          'acquisition_channels TEXT',
+          'communication_tools TEXT'
+        ];
+        crmCols.forEach(col => {
+          db.run(`ALTER TABLE users ADD COLUMN ${col}`, () => {});
+        });
+      }
+    });
 
     // Create Responses Table linked to users
     db.run(`CREATE TABLE IF NOT EXISTS responses (
@@ -335,6 +350,8 @@ app.get('/api/users', (req, res) => {
   const query = `
     SELECT 
       u.id as user_id, u.nickname, u.phone, u.created_at as user_created_at,
+      u.company_name, u.user_role, u.main_business, u.team_size, 
+      u.priority_problem, u.acquisition_channels, u.communication_tools,
       r.*
     FROM users u
     LEFT JOIN responses r ON r.id = (
@@ -369,6 +386,50 @@ app.get('/api/users', (req, res) => {
       };
     }));
   });
+});
+
+// Update user basic information (CRM)
+app.put('/api/users/:id/profile', (req, res) => {
+  const userId = req.params.id;
+  const {
+    company_name,
+    user_role,
+    main_business,
+    team_size,
+    priority_problem,
+    acquisition_channels,
+    communication_tools
+  } = req.body;
+
+  const stmt = db.prepare(`
+    UPDATE users 
+    SET 
+      company_name = ?, 
+      user_role = ?, 
+      main_business = ?, 
+      team_size = ?, 
+      priority_problem = ?, 
+      acquisition_channels = ?, 
+      communication_tools = ?
+    WHERE id = ?
+  `);
+
+  stmt.run([
+    company_name,
+    user_role,
+    main_business,
+    team_size,
+    priority_problem,
+    acquisition_channels,
+    communication_tools,
+    userId
+  ], function(err) {
+    if (err) {
+      return res.status(500).json({ error: err.message });
+    }
+    res.json({ success: true, updated: this.changes });
+  });
+  stmt.finalize();
 });
 
 app.get(/^(?!\/api\/|\/health$).*/, (req, res) => {

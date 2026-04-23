@@ -252,7 +252,23 @@ export default function App() {
   const [selectedUser, setSelectedUser] = useState<any | null>(null);
   const [selectedAdvice, setSelectedAdvice] = useState<{title: string, desc: string[] | string} | null>(null);
 
-  useEffect(() => {
+  // Profile editing state
+  const [editingProfile, setEditingProfile] = useState<any | null>(null);
+  const [profileForm, setProfileForm] = useState({
+    company_name: '',
+    user_role: '',
+    main_business: '',
+    team_size: '',
+    priority_problem: '',
+    acquisition_channels: [] as string[],
+    acquisition_channels_other: '',
+    communication_tools: [] as string[],
+    communication_tools_other: ''
+  });
+  const [savingProfile, setSavingProfile] = useState(false);
+
+  const fetchUsers = () => {
+    setLoading(true);
     fetch(apiUrl('/api/users'))
       .then(res => res.json())
       .then(data => {
@@ -263,7 +279,92 @@ export default function App() {
         console.error(err);
         setLoading(false);
       });
+  };
+
+  useEffect(() => {
+    fetchUsers();
   }, []);
+
+  const openProfileModal = (user: any) => {
+    setEditingProfile(user);
+    
+    // Parse channels
+    const channels = user.acquisition_channels ? user.acquisition_channels.split(',') : [];
+    const standardChannels = ['小红书', '抖音', '视频号', '朋友圈', '私域转介绍', '线下'];
+    const selectedChannels = channels.filter((c: string) => standardChannels.includes(c));
+    const otherChannel = channels.find((c: string) => !standardChannels.includes(c)) || '';
+
+    // Parse tools
+    const tools = user.communication_tools ? user.communication_tools.split(',') : [];
+    const standardTools = ['个人微信', '企业微信', '飞书', '钉钉'];
+    const selectedTools = tools.filter((c: string) => standardTools.includes(c));
+    const otherTool = tools.find((c: string) => !standardTools.includes(c)) || '';
+
+    setProfileForm({
+      company_name: user.company_name || '',
+      user_role: user.user_role || '',
+      main_business: user.main_business || '',
+      team_size: user.team_size || '',
+      priority_problem: user.priority_problem || '',
+      acquisition_channels: selectedChannels,
+      acquisition_channels_other: otherChannel,
+      communication_tools: selectedTools,
+      communication_tools_other: otherTool
+    });
+  };
+
+  const saveProfile = async () => {
+    setSavingProfile(true);
+    try {
+      const finalChannels = [...profileForm.acquisition_channels];
+      if (profileForm.acquisition_channels_other.trim()) {
+        finalChannels.push(profileForm.acquisition_channels_other.trim());
+      }
+      
+      const finalTools = [...profileForm.communication_tools];
+      if (profileForm.communication_tools_other.trim()) {
+        finalTools.push(profileForm.communication_tools_other.trim());
+      }
+
+      const payload = {
+        company_name: profileForm.company_name,
+        user_role: profileForm.user_role,
+        main_business: profileForm.main_business,
+        team_size: profileForm.team_size,
+        priority_problem: profileForm.priority_problem,
+        acquisition_channels: finalChannels.join(','),
+        communication_tools: finalTools.join(',')
+      };
+
+      const res = await fetch(apiUrl(`/api/users/${editingProfile.user_id}/profile`), {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      
+      if (res.ok) {
+        setEditingProfile(null);
+        fetchUsers(); // Refresh data
+      } else {
+        alert('保存失败');
+      }
+    } catch (e) {
+      console.error(e);
+      alert('保存出错');
+    }
+    setSavingProfile(false);
+  };
+
+  const handleCheckboxChange = (field: 'acquisition_channels' | 'communication_tools', value: string, checked: boolean) => {
+    setProfileForm(prev => {
+      const list = prev[field];
+      if (checked) {
+        return { ...prev, [field]: [...list, value] };
+      } else {
+        return { ...prev, [field]: list.filter(v => v !== value) };
+      }
+    });
+  };
 
   if (loading) return <div className="min-h-screen bg-slate-50 flex items-center justify-center">Loading...</div>;
 
@@ -303,7 +404,18 @@ export default function App() {
                 {responses.map((r) => (
                   <tr key={r.user_id} className="hover:bg-slate-50 transition-colors">
                     <td className="p-4 text-slate-500 font-mono">#{r.user_id}</td>
-                    <td className="p-4 text-slate-900 font-medium">{r.nickname}</td>
+                    <td className="p-4 text-slate-900 font-medium">
+                      <div className="flex items-center gap-2">
+                        {r.nickname}
+                        <button 
+                          onClick={() => openProfileModal(r)} 
+                          className="text-indigo-500 hover:text-indigo-700 text-xs flex items-center justify-center p-1 rounded hover:bg-indigo-50 transition-colors" 
+                          title="用户基础信息"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                        </button>
+                      </div>
+                    </td>
                     <td className="p-4 text-slate-600">{r.phone}</td>
                     <td className="p-4 text-slate-600">
                       <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${r.type === 'management' ? 'bg-purple-100 text-purple-800' : 'bg-emerald-100 text-emerald-800'}`}>
@@ -464,6 +576,109 @@ export default function App() {
               ) : (
                 <p className="text-slate-700 leading-relaxed">{selectedAdvice.desc}</p>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal for CRM Profile */}
+      {editingProfile && (
+        <div className="fixed inset-0 bg-slate-900/50 flex items-center justify-center p-4 z-50 animate-fade-in overflow-y-auto">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col my-8">
+            <div className="p-6 border-b border-slate-100 flex justify-between items-center shrink-0">
+              <h2 className="text-xl font-bold text-slate-900">{editingProfile.nickname} 的基础信息</h2>
+              <button 
+                onClick={() => setEditingProfile(null)}
+                className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-slate-100 text-slate-500 transition-colors"
+              >
+                ✕
+              </button>
+            </div>
+            <div className="p-6 overflow-y-auto flex-1 space-y-6">
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-semibold text-slate-700 mb-2">企业/品牌名称</label>
+                  <input type="text" className="w-full border border-slate-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-indigo-500 outline-none" value={profileForm.company_name} onChange={e => setProfileForm({...profileForm, company_name: e.target.value})} placeholder="填写企业或品牌名" />
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-slate-700 mb-2">主营业务</label>
+                  <input type="text" className="w-full border border-slate-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-indigo-500 outline-none" value={profileForm.main_business} onChange={e => setProfileForm({...profileForm, main_business: e.target.value})} placeholder="例如：少儿英语培训" />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-semibold text-slate-700 mb-2">用户角色</label>
+                  <select className="w-full border border-slate-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-indigo-500 outline-none" value={profileForm.user_role} onChange={e => setProfileForm({...profileForm, user_role: e.target.value})}>
+                    <option value="">请选择角色</option>
+                    <option value="老板">老板</option>
+                    <option value="业务负责人">业务负责人</option>
+                    <option value="员工">员工</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-slate-700 mb-2">团队规模</label>
+                  <select className="w-full border border-slate-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-indigo-500 outline-none" value={profileForm.team_size} onChange={e => setProfileForm({...profileForm, team_size: e.target.value})}>
+                    <option value="">请选择规模</option>
+                    <option value="1人">1人</option>
+                    <option value="2-5人">2-5人</option>
+                    <option value="6-20人">6-20人</option>
+                    <option value="20人以上">20人以上</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-slate-700 mb-2">当前最想优先解决的问题</label>
+                <textarea rows={3} className="w-full border border-slate-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-indigo-500 outline-none" value={profileForm.priority_problem} onChange={e => setProfileForm({...profileForm, priority_problem: e.target.value})} placeholder="详细描述目前遇到的卡点..."></textarea>
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-slate-700 mb-2">主要获客渠道 (多选)</label>
+                <div className="flex flex-wrap gap-3 mb-3">
+                  {['小红书', '抖音', '视频号', '朋友圈', '私域转介绍', '线下'].map(ch => (
+                    <label key={ch} className="flex items-center gap-1.5 cursor-pointer text-sm text-slate-600">
+                      <input type="checkbox" className="rounded text-indigo-600 focus:ring-indigo-500" 
+                        checked={profileForm.acquisition_channels.includes(ch)}
+                        onChange={e => handleCheckboxChange('acquisition_channels', ch, e.target.checked)}
+                      /> {ch}
+                    </label>
+                  ))}
+                </div>
+                <input type="text" className="w-full border border-slate-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-indigo-500 outline-none" value={profileForm.acquisition_channels_other} onChange={e => setProfileForm({...profileForm, acquisition_channels_other: e.target.value})} placeholder="其他渠道（手动填写）" />
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-slate-700 mb-2">常用通讯工具 (多选)</label>
+                <div className="flex flex-wrap gap-3 mb-3">
+                  {['个人微信', '企业微信', '飞书', '钉钉'].map(ch => (
+                    <label key={ch} className="flex items-center gap-1.5 cursor-pointer text-sm text-slate-600">
+                      <input type="checkbox" className="rounded text-indigo-600 focus:ring-indigo-500" 
+                        checked={profileForm.communication_tools.includes(ch)}
+                        onChange={e => handleCheckboxChange('communication_tools', ch, e.target.checked)}
+                      /> {ch}
+                    </label>
+                  ))}
+                </div>
+                <input type="text" className="w-full border border-slate-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-indigo-500 outline-none" value={profileForm.communication_tools_other} onChange={e => setProfileForm({...profileForm, communication_tools_other: e.target.value})} placeholder="其他工具（手动填写）" />
+              </div>
+
+            </div>
+            <div className="p-6 border-t border-slate-100 flex justify-end gap-3 shrink-0">
+              <button 
+                onClick={() => setEditingProfile(null)}
+                className="px-5 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50 rounded-lg border border-slate-200 transition-colors"
+              >
+                取消
+              </button>
+              <button 
+                onClick={saveProfile}
+                disabled={savingProfile}
+                className="px-5 py-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg shadow-sm transition-colors disabled:opacity-50"
+              >
+                {savingProfile ? '保存中...' : '保存信息'}
+              </button>
             </div>
           </div>
         </div>
