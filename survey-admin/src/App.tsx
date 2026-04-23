@@ -255,6 +255,7 @@ export default function App() {
   // Profile editing state
   const [editingProfile, setEditingProfile] = useState<any | null>(null);
   const [profileForm, setProfileForm] = useState({
+    real_name: '',
     company_name: '',
     user_role: '',
     main_business: '',
@@ -301,6 +302,7 @@ export default function App() {
     const otherTool = tools.find((c: string) => !standardTools.includes(c)) || '';
 
     setProfileForm({
+      real_name: user.real_name || '',
       company_name: user.company_name || '',
       user_role: user.user_role || '',
       main_business: user.main_business || '',
@@ -327,6 +329,7 @@ export default function App() {
       }
 
       const payload = {
+        real_name: profileForm.real_name,
         company_name: profileForm.company_name,
         user_role: profileForm.user_role,
         main_business: profileForm.main_business,
@@ -598,16 +601,20 @@ export default function App() {
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <label className="block text-sm font-semibold text-slate-700 mb-2">企业/品牌名称</label>
-                  <input type="text" className="w-full border border-slate-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-indigo-500 outline-none" value={profileForm.company_name} onChange={e => setProfileForm({...profileForm, company_name: e.target.value})} placeholder="填写企业或品牌名" />
+                  <label className="block text-sm font-semibold text-slate-700 mb-2">用户姓名/称呼</label>
+                  <input type="text" className="w-full border border-slate-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-indigo-500 outline-none" value={profileForm.real_name} onChange={e => setProfileForm({...profileForm, real_name: e.target.value})} placeholder="例如：张总 / 张三" />
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-slate-700 mb-2">主营业务</label>
-                  <input type="text" className="w-full border border-slate-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-indigo-500 outline-none" value={profileForm.main_business} onChange={e => setProfileForm({...profileForm, main_business: e.target.value})} placeholder="例如：少儿英语培训" />
+                  <label className="block text-sm font-semibold text-slate-700 mb-2">企业/品牌名称</label>
+                  <input type="text" className="w-full border border-slate-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-indigo-500 outline-none" value={profileForm.company_name} onChange={e => setProfileForm({...profileForm, company_name: e.target.value})} placeholder="填写企业或品牌名" />
                 </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-semibold text-slate-700 mb-2">主营业务</label>
+                  <input type="text" className="w-full border border-slate-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-indigo-500 outline-none" value={profileForm.main_business} onChange={e => setProfileForm({...profileForm, main_business: e.target.value})} placeholder="例如：少儿英语培训" />
+                </div>
                 <div>
                   <label className="block text-sm font-semibold text-slate-700 mb-2">用户角色</label>
                   <select className="w-full border border-slate-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-indigo-500 outline-none" value={profileForm.user_role} onChange={e => setProfileForm({...profileForm, user_role: e.target.value})}>
@@ -617,6 +624,9 @@ export default function App() {
                     <option value="员工">员工</option>
                   </select>
                 </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <label className="block text-sm font-semibold text-slate-700 mb-2">团队规模</label>
                   <select className="w-full border border-slate-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-indigo-500 outline-none" value={profileForm.team_size} onChange={e => setProfileForm({...profileForm, team_size: e.target.value})}>

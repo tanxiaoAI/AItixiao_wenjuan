@@ -99,6 +99,7 @@ const db = new sqlite3.Database(dbPath, (err) => {
     )`, (err) => {
       if (!err) {
         const crmCols = [
+          'real_name TEXT',
           'company_name TEXT',
           'user_role TEXT',
           'main_business TEXT',
@@ -350,7 +351,7 @@ app.get('/api/users', (req, res) => {
   const query = `
     SELECT 
       u.id as user_id, u.nickname, u.phone, u.created_at as user_created_at,
-      u.company_name, u.user_role, u.main_business, u.team_size, 
+      u.real_name, u.company_name, u.user_role, u.main_business, u.team_size, 
       u.priority_problem, u.acquisition_channels, u.communication_tools,
       r.*
     FROM users u
@@ -392,6 +393,7 @@ app.get('/api/users', (req, res) => {
 app.put('/api/users/:id/profile', (req, res) => {
   const userId = req.params.id;
   const {
+    real_name,
     company_name,
     user_role,
     main_business,
@@ -404,6 +406,7 @@ app.put('/api/users/:id/profile', (req, res) => {
   const stmt = db.prepare(`
     UPDATE users 
     SET 
+      real_name = ?,
       company_name = ?, 
       user_role = ?, 
       main_business = ?, 
@@ -415,6 +418,7 @@ app.put('/api/users/:id/profile', (req, res) => {
   `);
 
   stmt.run([
+    real_name,
     company_name,
     user_role,
     main_business,
