@@ -607,6 +607,78 @@ export default function App() {
                   <p className="text-slate-500 mt-1">{selectedUser.phone} · {new Date(selectedUser.created_at).toLocaleString('zh-CN')}</p>
                 </div>
 
+                {/* 诊断结果概览 */}
+                {selectedUser.result_data && (
+                  <div className="mb-8 space-y-6">
+                    {/* 整体建议 */}
+                    <div className="bg-slate-900 rounded-2xl p-6 text-white shadow-md">
+                      <h3 className="text-lg font-bold text-emerald-400 mb-2">整体建议</h3>
+                      <div className="text-xl font-bold mb-3">
+                        {selectedUser.result_data.quadrant_title || selectedUser.result_data.user_type_label}
+                      </div>
+                      <div className="text-slate-300 text-sm leading-relaxed space-y-2">
+                        {Array.isArray(selectedUser.result_data.quadrant_desc || selectedUser.result_data.user_type_desc) 
+                          ? (selectedUser.result_data.quadrant_desc || selectedUser.result_data.user_type_desc).map((d: string, i: number) => <p key={i}>{d}</p>)
+                          : <p>{selectedUser.result_data.quadrant_desc || selectedUser.result_data.user_type_desc}</p>
+                        }
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      {/* 业务流程评估 */}
+                      <div className="bg-slate-50 rounded-2xl p-6 border border-slate-100 shadow-sm flex flex-col">
+                        <h3 className="text-lg font-bold text-slate-900 mb-4 flex items-center justify-between">
+                          业务流程评估
+                          <span className="text-2xl font-black text-indigo-600">{selectedUser.result_data.business_avg.toFixed(1)}分</span>
+                        </h3>
+                        <div className="flex gap-4 mb-4 text-sm flex-wrap">
+                          <div className="bg-white px-3 py-1.5 rounded shadow-sm border border-slate-100 flex-1 min-w-[80px]">
+                            <span className="text-slate-500 text-xs block mb-0.5">内容获客</span>
+                            <span className="font-bold text-slate-800">{selectedUser.result_data.content_avg.toFixed(1)}</span>
+                          </div>
+                          <div className="bg-white px-3 py-1.5 rounded shadow-sm border border-slate-100 flex-1 min-w-[80px]">
+                            <span className="text-slate-500 text-xs block mb-0.5">线索转化</span>
+                            <span className="font-bold text-slate-800">{selectedUser.result_data.conversion_avg.toFixed(1)}</span>
+                          </div>
+                          <div className="bg-white px-3 py-1.5 rounded shadow-sm border border-slate-100 flex-1 min-w-[80px]">
+                            <span className="text-slate-500 text-xs block mb-0.5">交付服务</span>
+                            <span className="font-bold text-slate-800">{selectedUser.result_data.delivery_avg.toFixed(1)}</span>
+                          </div>
+                        </div>
+                        
+                        {selectedUser.result_data.lowest_module_name && (
+                          <div className="mb-4 bg-rose-50 p-3 rounded-lg border border-rose-100">
+                            <div className="text-sm font-bold text-rose-700 mb-1">
+                              优先优化: {selectedUser.result_data.lowest_module_name}
+                            </div>
+                            <div className="text-xs text-rose-600 leading-relaxed">
+                              {selectedUser.result_data.lowest_module_desc}
+                            </div>
+                          </div>
+                        )}
+                        
+                        <div className="text-sm text-slate-600 leading-relaxed bg-white p-4 rounded-lg border border-slate-100 mt-auto">
+                          <div className="font-bold text-slate-800 mb-1">{selectedUser.result_data.business_stage_label}</div>
+                          {selectedUser.result_data.business_stage_desc}
+                        </div>
+                      </div>
+
+                      {/* AI应用评估 */}
+                      <div className="bg-slate-50 rounded-2xl p-6 border border-slate-100 shadow-sm flex flex-col">
+                        <h3 className="text-lg font-bold text-slate-900 mb-4 flex items-center justify-between">
+                          AI应用评估
+                          <span className="text-2xl font-black text-cyan-600">{selectedUser.result_data.ai_avg.toFixed(1)}分</span>
+                        </h3>
+                        
+                        <div className="text-sm text-slate-600 leading-relaxed bg-white p-4 rounded-lg border border-slate-100 mt-auto">
+                          <div className="font-bold text-slate-800 mb-1">{selectedUser.result_data.ai_stage_label}</div>
+                          {selectedUser.result_data.ai_stage_desc}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 {/* 所有题目明细 */}
                 <div>
                   <h3 className="text-lg font-bold text-slate-900 mb-4 border-b pb-2">详细答卷记录</h3>
