@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import * as htmlToImage from 'html-to-image';
 
 const questions = [
   {
@@ -254,6 +255,9 @@ export default function App() {
 
   // Profile editing state
   const [editingProfile, setEditingProfile] = useState<any | null>(null);
+  const detailsRef = useRef<HTMLDivElement>(null);
+  const [savingImage, setSavingImage] = useState(false);
+  const [copyingText, setCopyingText] = useState(false);
   const [profileForm, setProfileForm] = useState({
     real_name: '',
     company_name: '',
@@ -367,6 +371,71 @@ export default function App() {
         return { ...prev, [field]: list.filter(v => v !== value) };
       }
     });
+  };
+
+  const handleSaveImage = async () => {
+    if (!detailsRef.current || !selectedUser) return;
+    setSavingImage(true);
+    try {
+      const dataUrl = await htmlToImage.toPng(detailsRef.current, { 
+        quality: 1, 
+        backgroundColor: '#ffffff',
+        style: {
+          transform: 'scale(1)',
+          transformOrigin: 'top left'
+        }
+      });
+      const link = document.createElement('a');
+      link.download = `${selectedUser.nickname}_诊断记录.png`;
+      link.href = dataUrl;
+      link.click();
+    } catch (err) {
+      console.error('Failed to save image', err);
+      alert('保存图片失败，请重试');
+    }
+    setSavingImage(false);
+  };
+
+  const handleCopyText = async () => {
+    if (!selectedUser) return;
+    setCopyingText(true);
+    try {
+      let text = `【诊断记录】${selectedUser.nickname}\n提交时间: ${new Date(selectedUser.created_at).toLocaleString('zh-CN')}\n联系方式: ${selectedUser.phone}\n\n`;
+      
+      if (selectedUser.result_data) {
+        text += `【总览得分】\n`;
+        text += `- 平均总分: ${selectedUser.result_data.business_avg.toFixed(1)}\n`;
+        text += `- 内容获客: ${selectedUser.result_data.content_avg.toFixed(1)}\n`;
+        text += `- 线索转化: ${selectedUser.result_data.conversion_avg.toFixed(1)}\n`;
+        text += `- 交付服务: ${selectedUser.result_data.delivery_avg.toFixed(1)}\n`;
+        text += `- AI应用: ${selectedUser.result_data.ai_avg.toFixed(1)}\n\n`;
+      }
+
+      text += `【详细答卷】\n`;
+      Array.from({ length: 20 }).forEach((_, i) => {
+        const qId = i + 1;
+        const score = selectedUser[`q${qId}`];
+        let moduleName = '';
+        if (qId <= 5) moduleName = '内容获客';
+        else if (qId <= 10) moduleName = '线索转化';
+        else if (qId <= 15) moduleName = '交付服务';
+        else moduleName = 'AI应用情况';
+
+        const qData = questions.find(q => q.id === qId);
+        const selectedOption = qData?.options.find(opt => opt.value === score);
+        
+        text += `[${moduleName}] Q${qId}. ${qData?.text}\n`;
+        text += `> 得分: ${score}分\n`;
+        text += `> 选项: ${selectedOption?.label || '未知选项'}\n\n`;
+      });
+
+      await navigator.clipboard.writeText(text);
+      alert('文本已复制到剪贴板！');
+    } catch (err) {
+      console.error('Failed to copy text', err);
+      alert('复制文本失败，请重试');
+    }
+    setCopyingText(false);
   };
 
   if (loading) return <div className="min-h-screen bg-slate-50 flex items-center justify-center">Loading...</div>;
@@ -504,19 +573,44 @@ export default function App() {
                 <h2 className="text-2xl font-bold text-slate-900">{selectedUser.nickname} 的诊断报告</h2>
                 <p className="text-slate-500 text-sm mt-1">{selectedUser.phone} · {new Date(selectedUser.created_at).toLocaleString('zh-CN')}</p>
               </div>
-              <button 
-                onClick={() => setSelectedUser(null)}
-                className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-slate-100 text-slate-500 transition-colors"
-              >
-                ✕
-              </button>
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={handleSaveImage}
+                  disabled={savingImage}
+                  className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-emerald-700 bg-emerald-50 hover:bg-emerald-100 rounded-md transition-colors disabled:opacity-50"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
+                  {savingImage ? '保存中...' : '保存图片'}
+                </button>
+                <button
+                  onClick={handleCopyText}
+                  disabled={copyingText}
+                  className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-indigo-700 bg-indigo-50 hover:bg-indigo-100 rounded-md transition-colors disabled:opacity-50"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"></path></svg>
+                  {copyingText ? '复制中...' : '复制文本'}
+                </button>
+                <button 
+                  onClick={() => setSelectedUser(null)}
+                  className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-slate-100 text-slate-500 transition-colors ml-2"
+                >
+                  ✕
+                </button>
+              </div>
             </div>
             
-            <div className="p-6 overflow-y-auto flex-1 space-y-8">
-              {/* 所有题目明细 */}
-              <div>
-                <h3 className="text-lg font-bold text-slate-900 mb-4 border-b pb-2">详细答卷记录</h3>
-                <div className="space-y-4">
+            <div className="p-6 overflow-y-auto flex-1 bg-slate-50/50">
+              <div ref={detailsRef} className="space-y-8 bg-white p-6 rounded-xl border border-slate-100 shadow-sm">
+                {/* 用户信息头部（仅在图片中显示更好看，或者都显示） */}
+                <div className="border-b border-slate-100 pb-4 mb-6">
+                  <h2 className="text-2xl font-bold text-slate-900">{selectedUser.nickname} 的诊断报告</h2>
+                  <p className="text-slate-500 mt-1">{selectedUser.phone} · {new Date(selectedUser.created_at).toLocaleString('zh-CN')}</p>
+                </div>
+
+                {/* 所有题目明细 */}
+                <div>
+                  <h3 className="text-lg font-bold text-slate-900 mb-4 border-b pb-2">详细答卷记录</h3>
+                  <div className="space-y-4">
                   {Array.from({ length: 20 }).map((_, i) => {
                     const qId = i + 1;
                     const score = selectedUser[`q${qId}`];
@@ -546,6 +640,7 @@ export default function App() {
                       </div>
                     );
                   })}
+                  </div>
                 </div>
               </div>
             </div>
